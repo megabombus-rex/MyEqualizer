@@ -25,10 +25,6 @@ extern "C" {
 
 #include "Application.h"
 
-AVFormatContext* formatContext = nullptr;
-AVCodecContext* codecContext = nullptr;
-AVCodec* codec = nullptr;
-
 struct FrameContext
 {
     ID3D12CommandAllocator* CommandAllocator;
