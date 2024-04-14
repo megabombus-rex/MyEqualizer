@@ -23,6 +23,8 @@ extern "C" {
 #pragma comment(lib, "dxguid.lib")
 #endif
 
+#include "Application.h"
+
 AVFormatContext* formatContext = nullptr;
 AVCodecContext* codecContext = nullptr;
 AVCodec* codec = nullptr;
@@ -144,6 +146,7 @@ int main(int, char**) {
         ImGui::NewFrame();
 
         // my code for GUI
+        MyEq::RenderUI();
 
         ImGui::Render();
 
