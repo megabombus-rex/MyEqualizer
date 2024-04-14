@@ -104,10 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>E:\repos\MyEqualizer_FFmpeg\MyEqualizer\MyEqualizer\ffmpeg-7.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>E:\repos\MyEqualizer_FFmpeg\MyEqualizer\MyEqualizer\ffmpeg-7.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);d3d12.lib;d3dcompiler.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,7 +130,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="DearImGUI\imgui.cpp" />
+    <ClCompile Include="DearImGUI\imgui_demo.cpp" />
+    <ClCompile Include="DearImGUI\imgui_draw.cpp" />
+    <ClCompile Include="DearImGUI\imgui_impl_dx12.cpp" />
+    <ClCompile Include="DearImGUI\imgui_impl_win32.cpp" />
+    <ClCompile Include="DearImGUI\imgui_tables.cpp" />
+    <ClCompile Include="DearImGUI\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application.h" />
+    <ClInclude Include="DearImGUI\imconfig.h" />
+    <ClInclude Include="DearImGUI\imgui.h" />
+    <ClInclude Include="DearImGUI\imgui_impl_dx12.h" />
+    <ClInclude Include="DearImGUI\imgui_impl_win32.h" />
+    <ClInclude Include="DearImGUI\imgui_internal.h" />
+    <ClInclude Include="DearImGUI\imstb_rectpack.h" />
+    <ClInclude Include="DearImGUI\imstb_textedit.h" />
+    <ClInclude Include="DearImGUI\imstb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
