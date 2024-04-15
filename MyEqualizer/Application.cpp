@@ -2,10 +2,28 @@
 
 #include "DearImGUI/imgui.h"
 
-void MyEq::RenderUI()
+MyEq::UIRenderer::UIRenderer()
+{
+}
+
+MyEq::UIRenderer::~UIRenderer()
+{
+}
+
+void MyEq::UIRenderer::RenderUI()
 {
     static bool opt_fullscreen = true;
     static bool opt_padding = false;
+    
+    this->CreateDockSpace(opt_fullscreen, opt_padding);
+
+    ImGui::Begin("Test window");
+    ImGui::End();
+
+}
+
+void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)
+{
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
@@ -71,8 +89,4 @@ void MyEq::RenderUI()
     }
 
     ImGui::End();
-
-    ImGui::Begin("Test window");
-    ImGui::End();
-
 }

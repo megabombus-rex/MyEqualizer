@@ -115,6 +115,7 @@ int main(int, char**) {
         g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
         g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 
+    MyEq::UIRenderer* renderer = new MyEq::UIRenderer();
 
 #pragma endregion
 
@@ -123,6 +124,7 @@ int main(int, char**) {
 
     bool isWindowClosed = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    
 
     while (!isWindowClosed)
     {
@@ -142,7 +144,7 @@ int main(int, char**) {
         ImGui::NewFrame();
 
         // my code for GUI
-        MyEq::RenderUI();
+        renderer->RenderUI();
 
         ImGui::Render();
 
@@ -195,6 +197,7 @@ int main(int, char**) {
 
 #pragma region Cleanup
 
+    delete renderer;
 
     WaitForLastSubmittedFrame();
 

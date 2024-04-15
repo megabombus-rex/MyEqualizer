@@ -1,5 +1,13 @@
 #pragma once
 
 namespace MyEq {
-	void RenderUI();
+	class UIRenderer {
+	public:
+		UIRenderer();
+		~UIRenderer();
+		void RenderUI();
+
+	private:
+		void CreateDockSpace(bool& opt_fullscreen, bool& opt_padding);
+	};
 }
