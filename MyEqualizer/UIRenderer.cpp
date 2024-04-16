@@ -1,4 +1,4 @@
-#include "Application.h"
+#include "UIRenderer.h"
 
 #include "DearImGUI/imgui.h"
 
@@ -11,15 +11,11 @@ MyEq::UIRenderer::~UIRenderer()
 }
 
 void MyEq::UIRenderer::RenderUI()
-{
-    static bool opt_fullscreen = true;
-    static bool opt_padding = false;
-    
+{    
     this->CreateDockSpace(opt_fullscreen, opt_padding);
 
     ImGui::Begin("Test window");
     ImGui::End();
-
 }
 
 void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)

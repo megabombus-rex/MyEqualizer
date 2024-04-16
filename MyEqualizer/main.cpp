@@ -1,12 +1,5 @@
 #include <iostream>
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/audio_fifo.h>
-#include <libswresample/swresample.h>
-}
-
 #include "DearImGUI/imgui.h"
 #include "DearImGUI/imgui_impl_win32.h"
 #include "DearImGUI/imgui_impl_dx12.h"
@@ -23,7 +16,7 @@ extern "C" {
 #pragma comment(lib, "dxguid.lib")
 #endif
 
-#include "Application.h"
+#include "UIRenderer.h"
 
 struct FrameContext
 {
