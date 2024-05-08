@@ -10,7 +10,7 @@ extern "C" {
 #pragma region Ctors
 
 
-FFmpegWrapper::FFmpegWrapper()
+MyEq::FFmpegWrapper::FFmpegWrapper()
 {
     filtersEnabled = true;
 
@@ -20,30 +20,56 @@ FFmpegWrapper::FFmpegWrapper()
     inputDeviceName = "UNKNOWN";
 }
 
-FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample)
+MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample)
 {
     filtersEnabled = true;
 
-    inputDeviceName = inputDeviceName
+    inputDeviceName = inputDeviceName;
+    inputSampleRate = inputSample;
+    outputSampleRate = outputSample;
 }
 
 #pragma endregion
 
 #pragma region Public Methods
 
-int FFmpegWrapper::init()
+int MyEq::FFmpegWrapper::init()
 {
     try {
         avformat_open_input(&formatContext, inputDeviceName.c_str(), nullptr, nullptr);
         avformat_find_stream_info(formatContext, nullptr);
         int audioStreamIndex = -1;
-        for (int i = 0; i < formatContext->nb_streams; i++) {
+        for (unsigned int i = 0; i < formatContext->nb_streams; i++) {
             if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
                 audioStreamIndex = i;
                 break;
             }
         }
 
+        codec = avcodec_find_decoder(formatContext->streams[audioStreamIndex]->codecpar->codec_id);
+        codecContext = avcodec_alloc_context3(codec);
+        avcodec_parameters_to_context(codecContext, formatContext->streams[audioStreamIndex]->codecpar);
+        avcodec_open2(codecContext, codec, nullptr);
+
+        // Set up resampler
+    /*    SwrContext* swrContext = swr_alloc_set_opts(nullptr,
+            av_get_default_channel_layout(2), AV_SAMPLE_FMT_FLTP, OUTPUT_SAMPLE_RATE,
+            av_get_default_channel_layout(codecContext->channels), codecContext->sample_fmt, codecContext->sample_rate,
+            0, nullptr);*/
+
+
+        swrContext = swr_alloc();
+
+        //swr_alloc_set_opts2(&swrContext, );
+
+        swr_init(swrContext);
+
+        // Allocate and initialize audio FIFO buffer
+        AVAudioFifo* fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP, 2, 1);
+
+        // Temporary packet and frame
+        AVPacket* packet = av_packet_alloc();
+        AVFrame* frame = av_frame_alloc();
 
     }
     catch (std::exception ex)
@@ -55,7 +81,7 @@ int FFmpegWrapper::init()
     return 0;
 }
 
-void FFmpegWrapper::cleanup()
+void MyEq::FFmpegWrapper::cleanup()
 {
     av_audio_fifo_free(fifo);
     swr_free(&swrContext);
@@ -65,69 +91,76 @@ void FFmpegWrapper::cleanup()
     av_packet_free(&packet);
 }
 
-void FFmpegWrapper::changeInputAudio()
+void MyEq::FFmpegWrapper::changeInputAudio()
 {
 }
 
 #pragma region Getters & Setters
 
 
-bool FFmpegWrapper::getFiltersEnabled()
+bool MyEq::FFmpegWrapper::getFiltersEnabled()
 {
     return filtersEnabled;
 }
 
-long FFmpegWrapper::getInputSampleRate()
+long MyEq::FFmpegWrapper::getInputSampleRate()
 {
     return inputSampleRate;
 }
 
-long FFmpegWrapper::getOutputSampleRate()
+long MyEq::FFmpegWrapper::getOutputSampleRate()
 {
     return outputSampleRate;
 }
 
-std::string FFmpegWrapper::getInputDeviceName()
+std::string MyEq::FFmpegWrapper::getInputDeviceName()
 {
     return inputDeviceName;
 }
 
-void FFmpegWrapper::setFiltersEnabled(bool value)
+void MyEq::FFmpegWrapper::setFiltersEnabled(bool value)
 {
     filtersEnabled = value;
 }
 
-void FFmpegWrapper::setInputSampleRate(long value)
+void MyEq::FFmpegWrapper::setInputSampleRate(long value)
 {
     inputSampleRate = value;
 }
 
-void FFmpegWrapper::setOutputSampleRate(long value)
+void MyEq::FFmpegWrapper::setOutputSampleRate(long value)
 {
     outputSampleRate = value;
 }
 
-void FFmpegWrapper::setInputDeviceName(std::string value)
+void MyEq::FFmpegWrapper::setInputDeviceName(std::string value)
 {
     inputDeviceName = value;
 }
 
 #pragma endregion
 
+void MyEq::FFmpegWrapper::testWrapper()
+{/*
+    auto data = avio_enum_protocols(NULL, 1);
+    auto data2 = avio_enum_protocols(NULL, 0);
+
+    std::cout << data << "\n" << data2 << std::endl;*/
+}
 
 #pragma endregion
 
 #pragma region Private Methods
 
-void FFmpegWrapper::readDataPacket()
+void MyEq::FFmpegWrapper::readDataPacket()
 {
 }
 
-void FFmpegWrapper::writeDataPacket()
+void MyEq::FFmpegWrapper::writeDataPacket()
 {
 }
 
-void FFmpegWrapper::addPitch(double pitchShiftFactor)
+void MyEq::FFmpegWrapper::addPitch(double pitchShiftFactor)
 {
 }
 

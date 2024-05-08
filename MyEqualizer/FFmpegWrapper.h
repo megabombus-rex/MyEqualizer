@@ -9,42 +9,48 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-class FFmpegWrapper {
-private:
-	AVFormatContext* formatContext = nullptr;
-	AVCodecContext* codecContext = nullptr;
-	AVCodec* codec = nullptr;
-	AVAudioFifo* fifo = nullptr;
-	SwrContext* swrContext = nullptr;
-	AVPacket* packet = nullptr;
-	AVFrame* frame = nullptr;
+namespace MyEq {
 
-	bool filtersEnabled = true; // it can be switched later
+	class FFmpegWrapper {
+	private:
+		AVFormatContext* formatContext = NULL;
+		AVCodecContext* codecContext = NULL;
+		const AVCodec* codec = NULL;
+		AVAudioFifo* fifo = NULL;
+		SwrContext* swrContext = NULL;
+		AVPacket* packet = NULL;
+		AVFrame* frame = NULL;
 
-	std::string inputDeviceName = "UNKNOWN";
+		bool filtersEnabled = true; // it can be switched later
 
-	long inputSampleRate = 44100;
-	long outputSampleRate = 44100;
+		std::string inputDeviceName = "UNKNOWN";
 
-	void readDataPacket();
-	void writeDataPacket();
+		long inputSampleRate = 44100;
+		long outputSampleRate = 44100;
 
-	void addPitch(double pitchShiftFactor);
-public:
-	FFmpegWrapper();
-	FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample);
+		void readDataPacket();
+		void writeDataPacket();
 
-	int init();
-	void cleanup();
-	void changeInputAudio();
+		void addPitch(double pitchShiftFactor);
+	public:
+		FFmpegWrapper();
+		FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample);
 
-	bool getFiltersEnabled();
-	long getInputSampleRate();
-	long getOutputSampleRate();
-	std::string getInputDeviceName();
+		int init();
+		void cleanup();
+		void changeInputAudio();
 
-	void setFiltersEnabled(bool value);
-	void setInputSampleRate(long value);
-	void setOutputSampleRate(long value);
-	void setInputDeviceName(std::string value);
-};
+		bool getFiltersEnabled();
+		long getInputSampleRate();
+		long getOutputSampleRate();
+		std::string getInputDeviceName();
+
+		void setFiltersEnabled(bool value);
+		void setInputSampleRate(long value);
+		void setOutputSampleRate(long value);
+		void setInputDeviceName(std::string value);
+
+		void testWrapper();
+	};
+
+}

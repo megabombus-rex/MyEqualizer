@@ -17,6 +17,7 @@
 #endif
 
 #include "UIRenderer.h"
+#include "FFmpegWrapper.h"
 
 struct FrameContext
 {
@@ -109,11 +110,13 @@ int main(int, char**) {
         g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 
     MyEq::UIRenderer* renderer = new MyEq::UIRenderer();
+    MyEq::FFmpegWrapper* ffmpeg = new MyEq::FFmpegWrapper();
 
 #pragma endregion
 
 #pragma region WindowRender
 
+    ffmpeg->testWrapper();
 
     bool isWindowClosed = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -191,6 +194,7 @@ int main(int, char**) {
 #pragma region Cleanup
 
     delete renderer;
+    delete ffmpeg;
 
     WaitForLastSubmittedFrame();
 
