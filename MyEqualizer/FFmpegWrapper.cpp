@@ -33,7 +33,7 @@ MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, lo
 
 #pragma region Public Methods
 
-int MyEq::FFmpegWrapper::init()
+int MyEq::FFmpegWrapper::init(std::string inputDeviceName)
 {
     try {
         avformat_open_input(&formatContext, inputDeviceName.c_str(), nullptr, nullptr);
@@ -57,9 +57,13 @@ int MyEq::FFmpegWrapper::init()
             av_get_default_channel_layout(codecContext->channels), codecContext->sample_fmt, codecContext->sample_rate,
             0, nullptr);*/
 
+        layout = av_channel_layout_standard(NULL);
 
         swrContext = swr_alloc();
-
+        swr_alloc_set_opts2(&swrContext, 
+            layout, codecContext->sample_fmt, outputSampleRate, 
+            layout, codecContext->sample_fmt, inputSampleRate,
+            3, NULL);
         //swr_alloc_set_opts2(&swrContext, );
 
         swr_init(swrContext);
@@ -70,6 +74,30 @@ int MyEq::FFmpegWrapper::init()
         // Temporary packet and frame
         AVPacket* packet = av_packet_alloc();
         AVFrame* frame = av_frame_alloc();
+
+        while (true) {
+            // Read audio packet
+            av_read_frame(formatContext, packet);
+
+            // Decode audio packet
+            avcodec_send_packet(codecContext, packet);
+            avcodec_receive_frame(codecContext, frame);
+
+            // Resample audio frame
+            uint8_t* outputBuffer;
+            av_samples_alloc(&outputBuffer, nullptr, 2, frame->nb_samples, AV_SAMPLE_FMT_FLTP, 0);
+            int numSamplesOutput = swr_convert(swrContext, &outputBuffer, frame->nb_samples,
+                (const uint8_t**)frame->data, frame->nb_samples);
+
+            // Apply pitch shift by modifying sample rate
+            int newNumSamples = numSamplesOutput / 100; // pitchShiftFactor
+            av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
+
+            // Process audio here (e.g., save to file, play audio, etc.)
+
+            av_packet_unref(packet);
+            av_frame_unref(frame);
+        }
 
     }
     catch (std::exception ex)
@@ -85,7 +113,7 @@ void MyEq::FFmpegWrapper::cleanup()
 {
     av_audio_fifo_free(fifo);
     swr_free(&swrContext);
-    avcodec_close(codecContext);
+    avcodec_free_context(&codecContext);
     avformat_close_input(&formatContext);
     av_frame_free(&frame);
     av_packet_free(&packet);

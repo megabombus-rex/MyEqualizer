@@ -16,6 +16,7 @@ namespace MyEq {
 		AVFormatContext* formatContext = NULL;
 		AVCodecContext* codecContext = NULL;
 		const AVCodec* codec = NULL;
+		const AVChannelLayout* layout = NULL;
 		AVAudioFifo* fifo = NULL;
 		SwrContext* swrContext = NULL;
 		AVPacket* packet = NULL;
@@ -37,6 +38,7 @@ namespace MyEq {
 		FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample);
 
 		int init();
+		int init(std::string inputDeviceName);
 		void cleanup();
 		void changeInputAudio();
 
