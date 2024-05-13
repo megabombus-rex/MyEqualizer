@@ -1,6 +1,10 @@
 #include "UIRenderer.h"
 
 #include "DearImGUI/imgui.h"
+#include <windows.h>
+#include <commdlg.h>
+#include <tchar.h>
+#include <iostream>
 
 MyEq::UIRenderer::UIRenderer()
 {
@@ -12,20 +16,31 @@ MyEq::UIRenderer::~UIRenderer()
 
 void MyEq::UIRenderer::RenderUI()
 {    
-    this->CreateDockSpace(opt_fullscreen, opt_padding);
+    this->CreateDockSpace(optFullscreen, optFadding);
 
     ImGui::Begin("Test window");
+    if (ImGui::Button("Open a file")) {
+        auto open = OpenWindowsFile();
+        if (open != "") {
+            selectedFile = open;
+        }
+    }
+
+    if (!selectedFile.empty()) {
+        ImGui::Text(selectedFile.c_str());
+    }
+
     ImGui::End();
 }
 
-void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)
+void MyEq::UIRenderer::CreateDockSpace(bool& optFullscreen, bool& optPadding)
 {
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
     // because it would be confusing to have two docking targets within each others.
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    if (opt_fullscreen)
+    if (optFullscreen)
     {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -46,13 +61,13 @@ void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)
     if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
         window_flags |= ImGuiWindowFlags_NoBackground;
 
-    if (!opt_padding)
+    if (!optPadding)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin("MyEq Equilizer", nullptr, window_flags);
-    if (!opt_padding)
+    if (!optPadding)
         ImGui::PopStyleVar();
 
-    if (opt_fullscreen)
+    if (optFullscreen)
         ImGui::PopStyleVar(2);
 
     // Submit the DockSpace
@@ -66,8 +81,8 @@ void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)
         {
             // Disabling fullscreen would allow the window to be moved to the front of other windows,
             // which we can't undo at the moment without finer window depth/z control.
-            ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-            ImGui::MenuItem("Padding", NULL, &opt_padding);
+            ImGui::MenuItem("Fullscreen", NULL, &optFullscreen);
+            ImGui::MenuItem("Padding", NULL, &optPadding);
             ImGui::Separator();
 
             if (ImGui::MenuItem("Flag: NoDockingOverCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingOverCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingOverCentralNode; }
@@ -75,7 +90,7 @@ void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)
             if (ImGui::MenuItem("Flag: NoUndocking", "", (dockspace_flags & ImGuiDockNodeFlags_NoUndocking) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoUndocking; }
             if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
             if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-            if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
+            if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, optFullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
             ImGui::Separator();
 
             ImGui::EndMenu();
@@ -85,4 +100,32 @@ void MyEq::UIRenderer::CreateDockSpace(bool& opt_fullscreen, bool& opt_padding)
     }
 
     ImGui::End();
+}
+
+
+std::string MyEq::UIRenderer::OpenWindowsFile()
+{
+    OPENFILENAME ofn;       // structure to store the file dialog options
+    TCHAR szFile[260] = { 0 };  // buffer to store the selected file path
+
+    // Initialize OPENFILENAME structure
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFile = szFile;
+    ofn.lpstrFile[0] = '\0';
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = L"Custom Filter\0*.mp3;.mp4;.wav\0";//temp.c_str();
+    ofn.lpstrTitle = L"Select a File";
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+    if (GetOpenFileName(&ofn) == TRUE) {
+        std::wstring strFile(ofn.lpstrFile);
+        std::wcout << "Selected file for opening: " << strFile << std::endl;
+        std::string s(strFile.begin(), strFile.end());
+        return s;
+    }
+    else {
+        std::cerr << "No file selected." << std::endl;
+        return "";
+    }
 }

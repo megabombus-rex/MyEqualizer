@@ -1,3 +1,5 @@
+#include <iostream>
+
 #pragma once
 
 namespace MyEq {
@@ -8,9 +10,11 @@ namespace MyEq {
 		void RenderUI();
 
 	private:
-		bool opt_fullscreen = true;
-		bool opt_padding = false;
+		bool optFullscreen = true;
+		bool optFadding = false;
+		std::string selectedFile;
 
-		void CreateDockSpace(bool& opt_fullscreen, bool& opt_padding);
+		void CreateDockSpace(bool& optFullscreen, bool& optPadding);
+		std::string OpenWindowsFile();
 	};
 }
