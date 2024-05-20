@@ -24,7 +24,7 @@ MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, lo
 {
     filtersEnabled = true;
 
-    inputDeviceName = inputDeviceName;
+    inputDeviceName = inputDevice;
     inputSampleRate = inputSample;
     outputSampleRate = outputSample;
 }
