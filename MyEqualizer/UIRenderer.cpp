@@ -6,6 +6,11 @@
 #include <tchar.h>
 #include <iostream>
 
+MyEq::UIRenderer::UIRenderer(FFmpegWrapper* wrapper)
+{
+    this->wrapper = wrapper;
+}
+
 MyEq::UIRenderer::UIRenderer()
 {
 }

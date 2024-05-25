@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "FileWriter.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -29,16 +30,11 @@ namespace MyEq {
 		long inputSampleRate = 44100;
 		long outputSampleRate = 44100;
 
-		void readDataPacket();
-		void writeDataPacket();
-
-		void addPitch(double pitchShiftFactor);
 	public:
 		FFmpegWrapper();
 		FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample);
 
-		int init();
-		int init(std::string inputDeviceName);
+		int init(std::string inputFileOrDevice);
 		void cleanup();
 		void changeInputAudio();
 
@@ -52,7 +48,7 @@ namespace MyEq {
 		void setOutputSampleRate(long value);
 		void setInputDeviceName(std::string value);
 
-		void testWrapper();
+		void pitchInput(double pitchRate, std::string input);
 	};
 
 }

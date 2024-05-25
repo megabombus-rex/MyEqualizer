@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FFmpegWrapper.h" />
+    <ClInclude Include="FileWriter.h" />
     <ClInclude Include="UIRenderer.h" />
     <ClInclude Include="DearImGUI\imconfig.h" />
     <ClInclude Include="DearImGUI\imgui.h" />

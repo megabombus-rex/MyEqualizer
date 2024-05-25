@@ -33,10 +33,10 @@ MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, lo
 
 #pragma region Public Methods
 
-int MyEq::FFmpegWrapper::init(std::string inputDeviceName)
+int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
 {
     try {
-        avformat_open_input(&formatContext, inputDeviceName.c_str(), nullptr, nullptr);
+        avformat_open_input(&formatContext, inputFileOrDevice.c_str(), nullptr, nullptr);
         avformat_find_stream_info(formatContext, nullptr);
         int audioStreamIndex = -1;
         for (unsigned int i = 0; i < formatContext->nb_streams; i++) {
@@ -75,6 +75,7 @@ int MyEq::FFmpegWrapper::init(std::string inputDeviceName)
         AVPacket* packet = av_packet_alloc();
         AVFrame* frame = av_frame_alloc();
 
+        // move this to a function and call it in main loop
         while (true) {
             // Read audio packet
             av_read_frame(formatContext, packet);
@@ -168,28 +169,10 @@ void MyEq::FFmpegWrapper::setInputDeviceName(std::string value)
 
 #pragma endregion
 
-void MyEq::FFmpegWrapper::testWrapper()
-{/*
-    auto data = avio_enum_protocols(NULL, 1);
-    auto data2 = avio_enum_protocols(NULL, 0);
-
-    std::cout << data << "\n" << data2 << std::endl;*/
-}
-
-#pragma endregion
-
-#pragma region Private Methods
-
-void MyEq::FFmpegWrapper::readDataPacket()
+void MyEq::FFmpegWrapper::pitchInput(double pitchRate, std::string input)
 {
-}
-
-void MyEq::FFmpegWrapper::writeDataPacket()
-{
-}
-
-void MyEq::FFmpegWrapper::addPitch(double pitchShiftFactor)
-{
+    init(input);
+    cleanup();
 }
 
 #pragma endregion
