@@ -31,6 +31,7 @@ namespace MyEq {
 		long outputSampleRate = 44100;
 
 		void readPackets();
+		void addFilters();
 
 	public:
 		FFmpegWrapper();
@@ -38,7 +39,6 @@ namespace MyEq {
 
 		int init(std::string inputFileOrDevice);
 		void cleanup();
-		void changeInputAudio();
 
 		bool getFiltersEnabled();
 		long getInputSampleRate();

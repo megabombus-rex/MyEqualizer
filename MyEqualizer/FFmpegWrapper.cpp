@@ -63,6 +63,8 @@ void MyEq::FFmpegWrapper::readPackets()
         av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
 
         // Process audio here (e.g., save to file, play audio, etc.)
+        addFilters();
+
 
         av_packet_unref(packet);
         av_frame_unref(frame);
@@ -131,7 +133,9 @@ void MyEq::FFmpegWrapper::cleanup()
     avformat_close_input(&formatContext);
 }
 
-void MyEq::FFmpegWrapper::changeInputAudio()
+// call this method to add filters to the packets
+// use flags to know which filters to apply
+void MyEq::FFmpegWrapper::addFilters()
 {
 }
 
