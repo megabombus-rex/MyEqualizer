@@ -16,6 +16,8 @@ namespace MyEq {
 		bool optFullscreen = true;
 		bool optFadding = false;
 		std::string selectedFile;
+		size_t outputCharSize;
+		char* outputFile;
 
 		void CreateDockSpace(bool& optFullscreen, bool& optPadding);
 		std::string OpenWindowsFile();

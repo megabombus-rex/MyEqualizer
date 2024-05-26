@@ -2,18 +2,21 @@
 
 MyEq::Application::Application()
 {
-	renderer = new UIRenderer();
 	ffmpegWrapper = new FFmpegWrapper();
+    renderer = new UIRenderer(ffmpegWrapper);
 }
 
 MyEq::Application::~Application()
 {
-	delete renderer;
+    delete renderer;
 	delete ffmpegWrapper;
 }
 
 int MyEq::Application::run()
 {
+#pragma region Create Window
+
+
     bool isWindowClosed = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -71,6 +74,8 @@ int MyEq::Application::run()
         DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
         g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
         g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
+#pragma endregion
 
     while (!isWindowClosed)
     {

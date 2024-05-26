@@ -49,8 +49,14 @@ void MyEq::FFmpegWrapper::readPackets()
         av_read_frame(formatContext, packet);
 
         // Decode audio packet
-        avcodec_send_packet(codecContext, packet);
-        avcodec_receive_frame(codecContext, frame);
+        int sendPacket = avcodec_send_packet(codecContext, packet);
+        int receiveFrame = avcodec_receive_frame(codecContext, frame);
+
+        if (receiveFrame != 0 || sendPacket != 0) {
+            av_packet_unref(packet);
+            av_frame_unref(frame);
+            break;
+        }
 
         // Resample audio frame
         uint8_t* outputBuffer;
@@ -58,14 +64,13 @@ void MyEq::FFmpegWrapper::readPackets()
         int numSamplesOutput = swr_convert(swrContext, &outputBuffer, frame->nb_samples,
             (const uint8_t**)frame->data, frame->nb_samples);
 
-        // Apply pitch shift by modifying sample rate
         int newNumSamples = numSamplesOutput / 100; // pitchShiftFactor
-        av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
 
         // Process audio here (e.g., save to file, play audio, etc.)
         addFilters();
 
-
+        // save this
+        av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
         av_packet_unref(packet);
         av_frame_unref(frame);
 
@@ -101,10 +106,6 @@ int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
         avcodec_open2(codecContext, codec, nullptr);
 
         // Set up resampler
-    /*    SwrContext* swrContext = swr_alloc_set_opts(nullptr,
-            av_get_default_channel_layout(2), AV_SAMPLE_FMT_FLTP, OUTPUT_SAMPLE_RATE,
-            av_get_default_channel_layout(codecContext->channels), codecContext->sample_fmt, codecContext->sample_rate,
-            0, nullptr);*/
 
         layout = av_channel_layout_standard(NULL);
 

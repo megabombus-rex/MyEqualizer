@@ -9,6 +9,8 @@
 MyEq::UIRenderer::UIRenderer(FFmpegWrapper* wrapper)
 {
     this->wrapper = wrapper;
+    outputCharSize = 50;
+    outputFile = new char[outputCharSize];
 }
 
 MyEq::UIRenderer::UIRenderer()
@@ -33,6 +35,11 @@ void MyEq::UIRenderer::RenderUI()
 
     if (!selectedFile.empty()) {
         ImGui::Text(selectedFile.c_str());
+        if (ImGui::Button("Transfer file")) {
+            wrapper->init(selectedFile);
+
+            wrapper->cleanup();
+        }
     }
 
     ImGui::End();
