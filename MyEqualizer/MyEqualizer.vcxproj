@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Application.cpp" />
     <ClCompile Include="FFmpegWrapper.cpp" />
     <ClCompile Include="UIRenderer.cpp" />
     <ClCompile Include="DearImGUI\imgui.cpp" />
@@ -142,6 +143,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Application.h" />
     <ClInclude Include="FFmpegWrapper.h" />
     <ClInclude Include="FileWriter.h" />
     <ClInclude Include="UIRenderer.h" />
