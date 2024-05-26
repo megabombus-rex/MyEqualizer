@@ -31,6 +31,53 @@ MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, lo
 
 #pragma endregion
 
+#pragma region Private Methods
+
+// call this only after init and before cleanup
+// this can be async as it shouldn't block the UI thread
+void MyEq::FFmpegWrapper::readPackets()
+{
+    // Allocate and initialize audio FIFO buffer
+    AVAudioFifo* fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP, 2, 1);
+
+    // Temporary packet and frame
+    AVPacket* packet = av_packet_alloc();
+    AVFrame* frame = av_frame_alloc();
+
+    while (true) {
+        // Read audio packet
+        av_read_frame(formatContext, packet);
+
+        // Decode audio packet
+        avcodec_send_packet(codecContext, packet);
+        avcodec_receive_frame(codecContext, frame);
+
+        // Resample audio frame
+        uint8_t* outputBuffer;
+        av_samples_alloc(&outputBuffer, nullptr, 2, frame->nb_samples, AV_SAMPLE_FMT_FLTP, 0);
+        int numSamplesOutput = swr_convert(swrContext, &outputBuffer, frame->nb_samples,
+            (const uint8_t**)frame->data, frame->nb_samples);
+
+        // Apply pitch shift by modifying sample rate
+        int newNumSamples = numSamplesOutput / 100; // pitchShiftFactor
+        av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
+
+        // Process audio here (e.g., save to file, play audio, etc.)
+
+        av_packet_unref(packet);
+        av_frame_unref(frame);
+
+        // break conditions - EOF, empty samples, to check
+    }
+
+    av_audio_fifo_free(fifo);
+    av_frame_free(&frame);
+    av_packet_free(&packet);
+}
+
+#pragma endregion
+
+
 #pragma region Public Methods
 
 int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
@@ -67,39 +114,6 @@ int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
         //swr_alloc_set_opts2(&swrContext, );
 
         swr_init(swrContext);
-
-        // Allocate and initialize audio FIFO buffer
-        AVAudioFifo* fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP, 2, 1);
-
-        // Temporary packet and frame
-        AVPacket* packet = av_packet_alloc();
-        AVFrame* frame = av_frame_alloc();
-
-        // move this to a function and call it in main loop
-        while (true) {
-            // Read audio packet
-            av_read_frame(formatContext, packet);
-
-            // Decode audio packet
-            avcodec_send_packet(codecContext, packet);
-            avcodec_receive_frame(codecContext, frame);
-
-            // Resample audio frame
-            uint8_t* outputBuffer;
-            av_samples_alloc(&outputBuffer, nullptr, 2, frame->nb_samples, AV_SAMPLE_FMT_FLTP, 0);
-            int numSamplesOutput = swr_convert(swrContext, &outputBuffer, frame->nb_samples,
-                (const uint8_t**)frame->data, frame->nb_samples);
-
-            // Apply pitch shift by modifying sample rate
-            int newNumSamples = numSamplesOutput / 100; // pitchShiftFactor
-            av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
-
-            // Process audio here (e.g., save to file, play audio, etc.)
-
-            av_packet_unref(packet);
-            av_frame_unref(frame);
-        }
-
     }
     catch (std::exception ex)
     {
@@ -112,12 +126,9 @@ int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
 
 void MyEq::FFmpegWrapper::cleanup()
 {
-    av_audio_fifo_free(fifo);
     swr_free(&swrContext);
     avcodec_free_context(&codecContext);
     avformat_close_input(&formatContext);
-    av_frame_free(&frame);
-    av_packet_free(&packet);
 }
 
 void MyEq::FFmpegWrapper::changeInputAudio()
