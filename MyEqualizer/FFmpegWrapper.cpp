@@ -9,17 +9,6 @@ extern "C" {
 
 #pragma region Ctors
 
-
-MyEq::FFmpegWrapper::FFmpegWrapper()
-{
-    filtersEnabled = true;
-
-    inputSampleRate = 44100;
-    outputSampleRate = 44100;
-
-    inputDeviceName = "UNKNOWN";
-}
-
 MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample)
 {
     filtersEnabled = true;
@@ -35,20 +24,17 @@ MyEq::FFmpegWrapper::FFmpegWrapper(std::string inputDevice, long inputSample, lo
 
 // call this only after init and before cleanup
 // this can be async as it shouldn't block the UI thread
-void MyEq::FFmpegWrapper::readPackets()
+void MyEq::FFmpegWrapper::readPackets(FileWriter<uint8_t> fw)
 {
-    // Allocate and initialize audio FIFO buffer
-    AVAudioFifo* fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP, 2, 1);
+    fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP, 2, 1);
 
     // Temporary packet and frame
-    AVPacket* packet = av_packet_alloc();
-    AVFrame* frame = av_frame_alloc();
+    packet = av_packet_alloc();
+    frame = av_frame_alloc();
 
     while (true) {
-        // Read audio packet
         av_read_frame(formatContext, packet);
 
-        // Decode audio packet
         int sendPacket = avcodec_send_packet(codecContext, packet);
         int receiveFrame = avcodec_receive_frame(codecContext, frame);
 
@@ -58,7 +44,6 @@ void MyEq::FFmpegWrapper::readPackets()
             break;
         }
 
-        // Resample audio frame
         uint8_t* outputBuffer;
         av_samples_alloc(&outputBuffer, nullptr, 2, frame->nb_samples, AV_SAMPLE_FMT_FLTP, 0);
         int numSamplesOutput = swr_convert(swrContext, &outputBuffer, frame->nb_samples,
@@ -70,11 +55,14 @@ void MyEq::FFmpegWrapper::readPackets()
         addFilters();
 
         // save this
+
+        //int calculatedBufferSize = av_samples_get_buffer_size(nullptr, 2, frame->nb_samples, AV_SAMPLE_FMT_FLTP, 0) / 100;
+        int calculatedBufferSize = av_samples_get_buffer_size(nullptr, 2, newNumSamples, AV_SAMPLE_FMT_FLTP, 0);
         av_audio_fifo_write(fifo, (void**)&outputBuffer, newNumSamples);
+        fw.WriteToFile(outputBuffer, calculatedBufferSize);
+
         av_packet_unref(packet);
         av_frame_unref(frame);
-
-        // break conditions - EOF, empty samples, to check
     }
 
     av_audio_fifo_free(fifo);
@@ -90,8 +78,15 @@ void MyEq::FFmpegWrapper::readPackets()
 int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
 {
     try {
-        avformat_open_input(&formatContext, inputFileOrDevice.c_str(), nullptr, nullptr);
-        avformat_find_stream_info(formatContext, nullptr);
+        if (avformat_open_input(&formatContext, inputFileOrDevice.c_str(), nullptr, nullptr) < 0) {
+            return -1; // file couldn't be opened
+        }
+
+        if (avformat_find_stream_info(formatContext, nullptr) < 0) {
+            return -1; // stream info couldn't be found
+        }
+
+        // find audio stream
         int audioStreamIndex = -1;
         for (unsigned int i = 0; i < formatContext->nb_streams; i++) {
             if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
@@ -101,26 +96,38 @@ int MyEq::FFmpegWrapper::init(std::string inputFileOrDevice)
         }
 
         codec = avcodec_find_decoder(formatContext->streams[audioStreamIndex]->codecpar->codec_id);
+
+        if (codec == NULL) {
+            return -1; // codec couldn't be found
+        }
+
         codecContext = avcodec_alloc_context3(codec);
         avcodec_parameters_to_context(codecContext, formatContext->streams[audioStreamIndex]->codecpar);
-        avcodec_open2(codecContext, codec, nullptr);
+        
+        if (avcodec_open2(codecContext, codec, nullptr) < 0) {
+            return -1; // codec couldn't be opened
+        }
 
-        // Set up resampler
-
-        layout = av_channel_layout_standard(NULL);
+        // log layout description
+#if _DEBUG
+        char chLayoutDescription[128];
+        int sts = av_channel_layout_describe(&formatContext->streams[audioStreamIndex]->codecpar->ch_layout, chLayoutDescription, sizeof(chLayoutDescription));
+        std::cout << chLayoutDescription << std::endl;
+#endif
 
         swrContext = swr_alloc();
         swr_alloc_set_opts2(&swrContext, 
-            layout, codecContext->sample_fmt, outputSampleRate, 
-            layout, codecContext->sample_fmt, inputSampleRate,
+            &formatContext->streams[audioStreamIndex]->codecpar->ch_layout, codecContext->sample_fmt, outputSampleRate,
+            &formatContext->streams[audioStreamIndex]->codecpar->ch_layout, codecContext->sample_fmt, inputSampleRate,
             3, NULL);
-        //swr_alloc_set_opts2(&swrContext, );
 
         swr_init(swrContext);
     }
     catch (std::exception ex)
     {
+#if _DEBUG
         std::cout << ex.what() << std::endl;
+#endif // write to log else
         return 1;
     }
 
@@ -185,9 +192,11 @@ void MyEq::FFmpegWrapper::setInputDeviceName(std::string value)
 
 #pragma endregion
 
-void MyEq::FFmpegWrapper::pitchInput(double pitchRate, std::string input)
+void MyEq::FFmpegWrapper::transformInput(std::string input, std::string output)
 {
     init(input);
+    FileWriter<uint8_t> fw(output);
+    readPackets(fw);
     cleanup();
 }
 

@@ -10,18 +10,20 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+#define MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
+
 namespace MyEq {
 
 	class FFmpegWrapper {
 	private:
-		AVFormatContext* formatContext = NULL;
-		AVCodecContext* codecContext = NULL;
-		const AVCodec* codec = NULL;
-		const AVChannelLayout* layout = NULL;
-		//AVAudioFifo* fifo = NULL;
-		SwrContext* swrContext = NULL;
-		//AVPacket* packet = NULL;
-		//AVFrame* frame = NULL;
+		AVFormatContext*		formatContext = NULL;
+		AVCodecContext*			codecContext = NULL;
+		const AVCodec*			codec = NULL;
+		const AVChannelLayout*	layout = NULL;
+		AVAudioFifo*			fifo = NULL;
+		SwrContext*				swrContext = NULL;
+		AVPacket*				packet = NULL;
+		AVFrame*				frame = NULL;
 
 		bool filtersEnabled = true; // it can be switched later
 
@@ -30,12 +32,11 @@ namespace MyEq {
 		long inputSampleRate = 44100;
 		long outputSampleRate = 44100;
 
-		void readPackets();
+		void readPackets(FileWriter<uint8_t> fw);
 		void addFilters();
 
 	public:
-		FFmpegWrapper();
-		FFmpegWrapper(std::string inputDevice, long inputSample, long outputSample);
+		FFmpegWrapper(std::string inputDevice = "UNKNOWN", long inputSample = 44100, long outputSample = 44100);
 
 		int init(std::string inputFileOrDevice);
 		void cleanup();
@@ -50,7 +51,7 @@ namespace MyEq {
 		void setOutputSampleRate(long value);
 		void setInputDeviceName(std::string value);
 
-		void pitchInput(double pitchRate, std::string input);
+		void transformInput(std::string input, std::string output);
 	};
 
 }

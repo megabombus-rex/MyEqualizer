@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <iostream>
-#include <sstream>
+#include <fstream>
 
 namespace MyEq {
 	template <typename T>
@@ -31,6 +31,7 @@ namespace MyEq {
 	template<typename T>
 	inline int FileWriter<T>::WriteToFile(T* buffer, size_t bufferSize)
 	{
+		// for 64-bit systems 8 byte size pointer is ok
 		static_assert(sizeof(T*) == sizeof(uint8_t*));
 		try {
 			std::ofstream fp;

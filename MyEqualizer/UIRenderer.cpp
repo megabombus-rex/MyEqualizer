@@ -36,9 +36,8 @@ void MyEq::UIRenderer::RenderUI()
     if (!selectedFile.empty()) {
         ImGui::Text(selectedFile.c_str());
         if (ImGui::Button("Transfer file")) {
-            wrapper->init(selectedFile);
 
-            wrapper->cleanup();
+            wrapper->transformInput(4.4, selectedFile, "C:\\MyEqTesting\\JOE.mp3");
         }
     }
 
@@ -126,7 +125,7 @@ std::string MyEq::UIRenderer::OpenWindowsFile()
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = L"Custom Filter\0*.mp3;.mp4;.wav\0";//temp.c_str();
+    ofn.lpstrFilter = L"Custom Filter\0*.mp3\0";
     ofn.lpstrTitle = L"Select a File";
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
