@@ -35,6 +35,7 @@ void MyEq::FFmpegWrapper::readPackets(FileWriter<uint8_t> fw)
     while (true) {
         av_read_frame(formatContext, packet);
 
+        // decode packet/frame
         int sendPacket = avcodec_send_packet(codecContext, packet);
         int receiveFrame = avcodec_receive_frame(codecContext, frame);
 

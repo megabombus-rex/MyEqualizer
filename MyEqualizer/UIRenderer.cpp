@@ -37,7 +37,7 @@ void MyEq::UIRenderer::RenderUI()
         ImGui::Text(selectedFile.c_str());
         if (ImGui::Button("Transfer file")) {
 
-            wrapper->transformInput(4.4, selectedFile, "C:\\MyEqTesting\\JOE.mp3");
+            wrapper->transformInput(selectedFile, "C:\\MyEqTesting\\JOE.mp3");
         }
     }
 
